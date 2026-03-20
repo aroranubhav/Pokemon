@@ -17,9 +17,51 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    flavorDimensions += "tier"
+
+    productFlavors {
+        create("free") {
+            dimension = "tier"
+            applicationIdSuffix = ".free"
+            versionNameSuffix = "-free"
+            buildConfigField("Boolean", "IS_PRO", "false")
+        }
+
+        create("pro") {
+            dimension = "tier"
+            applicationIdSuffix = ".pro"
+            versionNameSuffix = "-pro"
+            buildConfigField("Boolean", "IS_PRO", "true")
+        }
+    }
+
+    signingConfigs {
+        create("release") {
+            val storeFilePath = System.getenv("SIGNING_STORE_FILE")
+            val storePass = System.getenv("SIGNING_STORE_PASSWORD")
+            val keyAliasValue = System.getenv("SIGNING_KEY_ALIAS")
+            val keyPass = System.getenv("SIGNING_KEY_PASSWORD")
+
+            if (storeFilePath != null && storePass != null &&
+                keyAliasValue != null && keyPass != null) {
+                storeFile = file(storeFilePath)
+                storePassword = storePass
+                keyAlias = keyAliasValue
+                keyPassword = keyPass
+            }
+        }
+    }
+
     buildTypes {
-        release {
+        debug {
             isMinifyEnabled = false
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
+        release {
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -32,6 +74,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
